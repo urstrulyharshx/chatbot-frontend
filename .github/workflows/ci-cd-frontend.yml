@@ -1,0 +1,43 @@
+name: CI/CD React Frontend
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull requests targeting the main branch
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Action to check out your repository
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Specify your Node.js version (e.g., '18', '20', 'lts/*')
+          cache: 'npm' # Caches node modules for faster builds
+          cache-dependency-path: './package-lock.json' # Or './yarn.lock'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps # Use --legacy-peer-deps for older npm/react versions if needed, otherwise just 'npm install'
+
+      # - name: Run tests (optional)
+      #   run: npm test -- --coverage --watchAll=false # Uncomment and adjust if you have tests
+
+      - name: Build React App
+        run: npm run build # This creates the 'build' folder
+
+      # --- Deployment to GitHub Pages (Optional) ---
+      # If you're deploying to Vercel, Netlify, or another service, replace this step.
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' # Only deploy if pushing to the main branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Default token provided by GitHub Actions for repo access
+          publish_dir: ./build # Directory to publish (usually 'build' for Create React App, 'dist' for Vite)
+          # cname: yourdomain.com # Uncomment and set if using a custom domain
